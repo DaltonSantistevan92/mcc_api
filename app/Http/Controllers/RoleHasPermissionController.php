@@ -10,48 +10,12 @@ use Spatie\Permission\Models\Permission;
 class RoleHasPermissionController extends Controller
 {
 
-    public function createAssignment2(Request $request){
-        $role_id = intval($request->role_id);
-        $permissions = $request->permissions;//array
-       
-        $role = Role::find($role_id);
-
-        //$permissionExists = [];
-        foreach ($permissions as $p) {
-           
-            $exitePermiss =  Permission::where('name',$p)->get()->first();
-
-            if($exitePermiss != null ){
-                if ($role != null) {
-                    $role->syncPermissions($permissions);
-                    $response = [
-                        'status' => true,
-                        'message' => 'Existen datos',
-                        'permission' => $role
-                    ];
-                }else{
-                    $response = [
-                        'status' => false,
-                        'message' => 'No existen un rol con el id '.$role_id,
-                        'role' => null
-                    ];
-                }
-            }else{
-                $response = [
-                    'status' => false,
-                    'message' => 'No existen el permiso'
-                ];
-            }
-        }
-        return response()->json($response);
-    }
-
     public function createAssignment(Request $request){
         $role_id = intval($request->role_id);
-        $permissions = collect($request->permissions);//array
-       
+        $permissions = collect($request->permissions);
         $role = Role::find($role_id);
-
+        $response = [];  $message = ''; 
+       
         if ($role) {
             if ($permissions->count() > 0) {
                 $existPermission = collect();   $noExistPermission =  collect(); 
@@ -65,44 +29,36 @@ class RoleHasPermissionController extends Controller
                     }
                 } 
 
-                if ($existPermission->count() == 0 && $noExistPermission->count() > 0) {
-                    $response = [
-                        'status' => false,
-                        'message' => 'Los permisos no existen',
-                        'permission' => $noExistPermission 
-                    ];
+                if ( $existPermission->count() == 0 && $noExistPermission->count() > 0 ) {
+                    $response = $this->returnResponse(false, 'Los permisos no existen', $noExistPermission);
                 }
 
-                if( $existPermission->count() > 0) {
+                if( $existPermission->count() > 0 ) {
                     $role->syncPermissions($existPermission);
-                    if ($noExistPermission->count() == 0) {
-                        $response = [
-                            'status' => true,
-                            'message' => 'Los permisos se asignaron correctamente',
-                            'role' => $role
-                        ];
+
+                    if ( $noExistPermission->count() == 0 ) {
+                        $response = $this->returnResponse(true, 'Los permisos se asignaron correctamente', $role);
                     } else {
-                        $response = [
-                            'status' => true,
-                            'message' => 'Los permisos ' . $existPermission . ' se asignaron correctamente y estos permisos no se asignaron '. $noExistPermission,
-                            'role' => $role
-                        ];       
+                        $message = 'Los permisos ' . $existPermission . ' se asignaron correctamente y estos permisos no se asignaron '. $noExistPermission;
+                        $response = $this->returnResponse(true, $message, $role);      
                     }
                 }               
             }else{
-                $response = [
-                    'status' => false,
-                    'message' => 'No existen permisos'
-                ];
+                $response = $this->returnResponse(false, 'No existen permisos', null);
             }
         }else{
-            $response = [
-                'status' => false,
-                'message' => 'No existen un rol con el id '.$role_id,
-                'role' => null
-            ];
+            $message = 'No existen un rol con el id ' . $role_id;
+            $response = $this->returnResponse(false, $message, null);
         }
-
         return response()->json($response);
+    }
+
+    private function returnResponse($status,$message,$data){
+        $response = [
+            'status' => $status,
+            'message' => $message,
+            'data' => $data
+        ];
+        return $response;
     }
 }

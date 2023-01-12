@@ -9,37 +9,23 @@ use Illuminate\Support\Facades\Validator;
 
 class RoleController extends Controller
 {
-    /**
-     * Create User
-     * @param Request $request
-     * @return User 
-     */
+
     public function createRoles(Request $request)
     {
         try {
-            //Validated
+            $validateRol = Validator::make($request->all(), [ 'name' => 'required', 'guard_name' => 'nullable' ],[ 'name.required' => 'El rol es requerido' ]);
             $response = [];
-            $validateRol = Validator::make($request->all(), 
-            [ 'name' => 'required', 'guard_name' => 'nullable' ],
-            [ 'name.required' => 'El rol es requerido' ]);
             
             if($validateRol->fails()){
-                $response = [
-                    'status' => false,
-                    'message' => 'Error de validacion',
-                    'errors' => $validateRol->errors()
-                ];
-                return response()->json($response, 401);
+                $response = $this->returnResponseError(false, 'Error de validación', $validateRol );
+                return response()->json( $response, 401 );
             }
 
             $role = Role::create(['name' => $request->name, 'guard_name' => $request->guard_name ]);
 
-            $response = [
-                'status' => true,
-                'message' => 'El Rol registro con éxito',
-                'role' => $role
-            ];
-            return response()->json($response, 200);
+            $response = $this->returnResponse(true, 'El Rol registro con éxito', $role );
+            return response()->json( $response, 200 );
+
         } catch (\Throwable $th) {
             return response()->json($this->returThrowable($th), 500);
         }
@@ -48,18 +34,12 @@ class RoleController extends Controller
     public function getAll(){
         try {
             $role = Role::get(['id','name']);
+            $response = [];
+
             if ($role != null) {
-                $response = [
-                    'status' => true,
-                    'message' => 'Existen datos',
-                    'role' => $role
-                ];
+                $response = $this->returnResponse(true, 'Existen datos', $role );
             }else{
-                $response = [
-                    'status' => false,
-                    'message' => 'No Existen datos',
-                    'role' => null
-                ];
+                $response = $this->returnResponse(false, 'No existen datos', null );
             }
             return response()->json($response);
             
@@ -75,4 +55,25 @@ class RoleController extends Controller
         ];
         return $response;
     }
+
+    private function returnResponseError($status,$message,$data){
+        $response = [
+            'status' => $status,
+            'message' => $message,
+            'errors' => $data->errors()
+        ];
+        return $response;
+    }
+
+    private function returnResponse($status,$message,$data){
+        $response = [
+            'status' => $status,
+            'message' => $message,
+            'data' => $data
+        ];
+        return $response;
+    }
+
+
+
 }
