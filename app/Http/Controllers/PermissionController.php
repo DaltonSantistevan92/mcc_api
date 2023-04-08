@@ -10,24 +10,22 @@ use Illuminate\Support\Facades\Validator;
 class PermissionController extends Controller
 {
     
-    public function createPermission(Request $request)
+    public function createPermission( Request $request )
     {
         try {
-            $validatePermission = Validator::make($request->all(),[ 'name' => 'required', 'guard_name' => 'nullable' ],[ 'name.required' => 'El nombre del permiso es requerido' ]); 
+            $validatePermission = Validator::make( $request->all(), [ 'name' => 'required', 'guard_name' => 'nullable' ],[ 'name.required' => 'El nombre del permiso es requerido' ]); 
             $response = [];
             
-            if($validatePermission->fails()){
+            if( $validatePermission->fails() ){
                 $response = $this->returnValidateError($validatePermission);
-                return response()->json($response, 401);
+                return response()->json( $response, 401 );
             }
 
             $permission = Permission::create([ 'name' => $request->name, 'guard_name' => $request->guard_name ]);
-
-            $response = $this->returnResponse(true,'El Permiso registro con éxito',$permission);
-            
-            return response()->json($response, 200);
-        } catch (\Throwable $th) {
-            return response()->json($this->returThrowable($th), 500);
+            $response = $this->returnResponse( true, 'El Permiso registro con éxito', $permission );  
+            return response()->json( $response, 200 );
+        } catch ( \Throwable $th ) {
+            return response()->json( $this->returThrowable($th), 500 );
         }
     }
 
@@ -36,18 +34,18 @@ class PermissionController extends Controller
             $permission = Permission::get(['id','name']);
             $response = [];
 
-            if ($permission != null) {
-                $response = $this->returnResponse(true, 'Existen datos', $permission);
+            if ( $permission != null ) {
+                $response = $this->returnResponse( true, 'Existen datos', $permission );
             }else{
-                $response = $this->returnResponse(false, 'No Existen datos', null);
+                $response = $this->returnResponse( false, 'No Existen datos', null );
             }
-            return response()->json($response); 
-        } catch (\Throwable $th) {
-            return response()->json($this->returThrowable($th),500);
+            return response()->json( $response); 
+        } catch ( \Throwable $th ) {
+            return response()->json( $this->returThrowable($th), 500 );
         }
     }
 
-    private function returThrowable($th){
+    private function returThrowable( $th ){
         $response = [
             'status' => false,
             'message' => $th->getMessage()
@@ -55,7 +53,7 @@ class PermissionController extends Controller
         return $response;
     }
 
-    private function returnValidateError($validatePermission){
+    private function returnValidateError( $validatePermission ){
         $response = [
             'status' => false,
             'message' => 'Error de validación',
@@ -64,7 +62,7 @@ class PermissionController extends Controller
         return $response;
     }
 
-    private function returnResponse($status,$message,$data){
+    private function returnResponse( $status, $message, $data ){
         $response = [
             'status' => $status,
             'message' => $message,

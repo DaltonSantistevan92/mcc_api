@@ -10,19 +10,19 @@ use Spatie\Permission\Models\Permission;
 class RoleHasPermissionController extends Controller
 {
 
-    public function createAssignment(Request $request){
+    public function createAssignment( Request $request ){
         $role_id = intval($request->role_id);
-        $permissions = collect($request->permissions);
-        $role = Role::find($role_id);
+        $permissions = collect( $request->permissions );
+        $role = Role::find( $role_id );
         $response = [];  $message = ''; 
        
-        if ($role) {
-            if ($permissions->count() > 0) {
+        if ( $role ) {
+            if ( $permissions->count() > 0 ) {
                 $existPermission = collect();   $noExistPermission =  collect(); 
                 foreach($permissions as $item){
                     $per =  Permission::where('name',$item)->get('name')->first(); 
                     
-                    if ($per != null) {
+                    if ( $per != null ) {
                         $existPermission->push($per->name);
                     }else{
                         $noExistPermission->push($item);
@@ -30,25 +30,25 @@ class RoleHasPermissionController extends Controller
                 } 
 
                 if ( $existPermission->count() == 0 && $noExistPermission->count() > 0 ) {
-                    $response = $this->returnResponse(false, 'Los permisos no existen', $noExistPermission);
+                    $response = $this->returnResponse( false, 'Los permisos no existen', $noExistPermission );
                 }
 
                 if( $existPermission->count() > 0 ) {
-                    $role->syncPermissions($existPermission);
+                    $role->syncPermissions( $existPermission );
 
                     if ( $noExistPermission->count() == 0 ) {
-                        $response = $this->returnResponse(true, 'Los permisos se asignaron correctamente', $role);
+                        $response = $this->returnResponse( true, 'Los permisos se asignaron correctamente', $role );
                     } else {
                         $message = 'Los permisos ' . $existPermission . ' se asignaron correctamente y estos permisos no se asignaron '. $noExistPermission;
-                        $response = $this->returnResponse(true, $message, $role);      
+                        $response = $this->returnResponse( true, $message, $role );      
                     }
                 }               
             }else{
-                $response = $this->returnResponse(false, 'No existen permisos', null);
+                $response = $this->returnResponse( false, 'No existen permisos', null );
             }
         }else{
             $message = 'No existen un rol con el id ' . $role_id;
-            $response = $this->returnResponse(false, $message, null);
+            $response = $this->returnResponse( false, $message, null );
         }
         return response()->json($response);
     }
