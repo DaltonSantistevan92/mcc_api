@@ -4,6 +4,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\MenuController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\PersonController;
+use App\Http\Controllers\ProductController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\RoleHasPermissionController;
 use Illuminate\Http\Request;
@@ -26,8 +27,8 @@ use Illuminate\Support\Facades\Route;
 
 
 //public routes
-Route::post('loginUser',[AuthController::class, 'loginUser']);
-Route::post('createUser',[AuthController::class, 'createUser']);
+Route::post('login',[AuthController::class, 'loginUser']);
+Route::post('createuser',[AuthController::class, 'createUser']);
 
 //protected routes
 Route::get('roles',[RoleController::class, 'getAll']);
@@ -50,6 +51,11 @@ Route::post('menus',[MenuController::class, 'createMenu']);
 Route::get('menus/permissions',[MenuController::class, 'getWhitPermissions']);
 Route::post('menus/assign_permissions',[MenuController::class, 'assignPermissions']);
 Route::post('menus/remove_permissions',[MenuController::class, 'removePermissions']);
+
+Route::get('product',[ProductController::class, 'getProduct']);
+
+
+
 
 
 
