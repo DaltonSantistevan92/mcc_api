@@ -55,6 +55,12 @@ Route::post('menus/remove_permissions',[MenuController::class, 'removePermission
 Route::get('product',[ProductController::class, 'getProduct']);
 
 
+Route::middleware('jwt.verify')->group( function () { 
+    
+
+});
+
+
 
 
 

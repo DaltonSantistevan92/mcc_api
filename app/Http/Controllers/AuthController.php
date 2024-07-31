@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\{Auth,Validator,Hash};
 
 use App\Http\Controllers\{PersonController,RoleController};
 
+use Tymon\JWTAuth\Facades\JWTAuth;
+
+
 class AuthController extends Controller
 {
     private $personCtrl;
@@ -127,12 +130,12 @@ class AuthController extends Controller
         return $response;
     }
 
-    public function loginUser( Request $request )
+    public function loginUserVersionAnterior( Request $request )
     {
         //return response()->json($request); die;
         try {
             $validateUser = Validator::make( $request->all(), 
-            ['email' => 'required|email','password' => 'required'],
+            [   'email' => 'required|email','password' => 'required'  ],
             [
                 'email.required' => 'El campo correo es requerido',
                 'email.email' => 'El correo no tiene un formato válido',
@@ -152,6 +155,52 @@ class AuthController extends Controller
 
             $user = User::where('email', $request->email)->first();
             $response = $this->returnResponseToken( true, 'El Usuario ha iniciado sesión con éxito', $user );
+            return response()->json( $response, 200 );
+        } catch ( \Throwable $th ) {
+            $response = [ 'status' => false, 'message' => 'Error del Servidor' ];
+            return response()->json( $response, 500 );
+        }
+    }
+
+    public function loginUser( Request $request )
+    {
+        //return response()->json($request); die;
+        try {
+            $validateUser = Validator::make( $request->only(['email', 'password']), 
+            [   'email' => 'required|email','password' => 'required'  ],
+            [
+                'email.required' => 'El campo correo es requerido',
+                'email.email' => 'El correo no tiene un formato válido',
+                'password.required' => 'El campo contraseña es requerido'
+            ]);
+            $response = [];
+
+            $credenciales = $request->only('email', 'password');
+
+            if( $validateUser->fails() ){
+                $response = $this->returnValidateError( $validateUser );
+                return response()->json( $response, 401 );
+            }
+
+
+            if (!$token = JWTAuth::attempt($credenciales)) {
+                $response = ['status' => false, 'message' => 'El correo o las credenciales son invalidas'];
+                return response()->json($response);
+            }
+
+            $user = User::where('email', $request->email)->first();
+
+            $userRole = $user->roles->pluck('name','name')->all();
+
+            //$payloadable = ['user' => $user, 'rol' => $userRole];
+            $payloadable = ['user' => $user];
+
+
+
+             $token = JWTAuth::claims($payloadable)->attempt($request->only(['email', 'password']));
+
+             $response = [ 'status' => true, 'message' => "El Usuario ha iniciado sesión con éxito", 'token' => $token ];
+        
             return response()->json( $response, 200 );
         } catch ( \Throwable $th ) {
             $response = [ 'status' => false, 'message' => 'Error del Servidor' ];
